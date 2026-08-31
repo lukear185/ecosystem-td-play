@@ -4,10 +4,11 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1788194442|2955947';
+const CACHE_VERSION = '1788198000|2615839';
 /** @type {string} */
-const CACHE_PREFIX = 'ecosystem-td-play-sw-cache-';
+const CACHE_PREFIX = 'ecosystem-td-play-v3-sw-cache-';
 const LEGACY_CACHE_PREFIXES = [
+	'ecosystem-td-play-sw-cache-',
 	'人工太陽炉 外郭路-sw-cache-',
 	'夜を焼く太陽-sw-cache-',
 ];
@@ -23,13 +24,22 @@ const CACHED_FILES = ["index.html","index.js","index.offline.html","index.icon.p
 /** @type {string[]} */
 const CACHEABLE_FILES = ["index.wasm","index.pck"];
 const FULL_CACHE = CACHED_FILES.concat(CACHEABLE_FILES);
-// PWA_ATOMIC_UPDATE_PATCH_V2: stage the complete runtime before replacing a running build.
+// PWA_ATOMIC_UPDATE_PATCH_V3: stage a fresh runtime and switch only at a safe boot boundary.
 
 self.addEventListener('install', (event) => {
 	event.waitUntil(
-		caches.open(CACHE_NAME)
-			.then((cache) => cache.addAll(FULL_CACHE))
-			.then(() => self.skipWaiting())
+		Promise.all([caches.open(CACHE_NAME), caches.keys()])
+			.then(([cache, keys]) => {
+				const hasPreviousProtocolCache = keys.some((key) =>
+					key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME
+				);
+				const legacyMigration = !hasPreviousProtocolCache && keys.some((key) =>
+					LEGACY_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix))
+				);
+				const filesToStage = legacyMigration ? CACHED_FILES : FULL_CACHE;
+				return cache.addAll(filesToStage.map((name) => new Request(name, { cache: 'reload' })))
+					.then(() => legacyMigration ? self.skipWaiting() : Promise.resolve());
+			})
 	);
 });
 
@@ -41,16 +51,24 @@ self.addEventListener('activate', (event) => {
 				|| LEGACY_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix))
 			) && key !== CACHE_NAME)
 			.sort();
+		const hasPreviousProtocolCache = oldCaches.some((key) =>
+			key.startsWith(CACHE_PREFIX)
+		);
+		const legacyReloadRequired = !hasPreviousProtocolCache && oldCaches.some((key) =>
+			LEGACY_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix))
+		);
 		const preload = ('navigationPreload' in self.registration)
 			? self.registration.navigationPreload.enable().catch(() => {})
 			: Promise.resolve();
-		if (oldCaches.length === 0) {
-			return preload;
-		}
 		return preload
 			.then(() => self.clients.claim())
-			.then(() => self.clients.matchAll({ type: 'window' }))
-			.then((all) => Promise.all(all.map((client) => client.navigate(client.url))))
+			.then(() => {
+				if (!legacyReloadRequired) {
+					return Promise.resolve();
+				}
+				return self.clients.matchAll({ type: 'window' })
+					.then((all) => Promise.all(all.map((client) => client.navigate(client.url))));
+			})
 			.then(() => Promise.all(oldCaches.map((key) => caches.delete(key))));
 	}));
 });
@@ -177,7 +195,7 @@ self.addEventListener('message', (event) => {
 			self.skipWaiting().then(() => self.clients.claim());
 		} else if (msg === 'clear') {
 			caches.delete(CACHE_NAME);
-		} else if (msg === 'update') {
+		} else if (msg === 'update' || msg === 'activate') {
 			self.skipWaiting();
 		}
 	});

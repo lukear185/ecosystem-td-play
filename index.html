@@ -93,7 +93,7 @@ body {
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 <link rel="manifest" href="index.manifest.json">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#111826"><meta name="apple-mobile-web-app-title" content="夜を焼く太陽"><style>html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;overscroll-behavior:none;background:#111826;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}body{position:fixed;inset:0}canvas{display:block;touch-action:none;-webkit-user-select:none;user-select:none}</style><script>(()=>{if(!('serviceWorker' in navigator))return;let currentRegistration=null;const requestUpdate=()=>{if(currentRegistration)currentRegistration.update().catch(()=>{})};navigator.serviceWorker.register('index.service.worker.js',{updateViaCache:'none'}).then((registration)=>{currentRegistration=registration;return registration.update()}).catch((error)=>console.error('PWA update check failed',error));document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')requestUpdate()})})();</script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#111826"><meta name="apple-mobile-web-app-title" content="夜を焼く太陽"><style>html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;overscroll-behavior:none;background:#111826;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}body{position:fixed;inset:0}canvas{display:block;touch-action:none;-webkit-user-select:none;user-select:none}</style><script>(()=>{const PWA_SAFE_BOOT_GATE_V1=true;window.__godotPwaReady=(()=>{if(!('serviceWorker' in navigator))return Promise.resolve();const serviceWorker=navigator.serviceWorker;const hadController=!!serviceWorker.controller;let settled=false;let reloading=false;return new Promise((resolve)=>{let watchedWorker=null;let onStateChange=null;let activationRequested=false;let onControllerChange=null;const cleanup=()=>{if(onControllerChange)serviceWorker.removeEventListener('controllerchange',onControllerChange);if(watchedWorker&&onStateChange)watchedWorker.removeEventListener('statechange',onStateChange)};const finish=()=>{if(settled)return;settled=true;cleanup();resolve()};const requestActivation=(worker)=>{if(activationRequested)return;activationRequested=true;worker.postMessage('activate')};const watchWorker=(registration,worker)=>{watchedWorker=worker;onStateChange=()=>{if(worker.state==='installed'&&(hadController||registration.waiting))requestActivation(registration.waiting||worker);else if(worker.state==='activated'){if(!hadController)finish()}else if(worker.state==='redundant')finish()};worker.addEventListener('statechange',onStateChange);onStateChange()};onControllerChange=()=>{if(settled)return;if(hadController&&!reloading){reloading=true;settled=true;cleanup();location.reload();return}finish()};serviceWorker.addEventListener('controllerchange',onControllerChange);serviceWorker.register('index.service.worker.js',{updateViaCache:'none'}).then(async(registration)=>{await registration.update();if(settled)return;const worker=registration.installing||registration.waiting;if(!worker){finish();return}watchWorker(registration,worker)}).catch((error)=>{console.error('PWA update check failed',error);finish()})})})();})();</script>
 	</head>
 	<body>
 		<canvas id="canvas">
@@ -112,7 +112,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":16730884,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,"serviceWorker":"index.service.worker.js"};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":16731012,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,"serviceWorker":"index.service.worker.js"};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -200,7 +200,7 @@ const engine = new Engine(GODOT_CONFIG);
 		}
 	} else {
 		setStatusMode('progress');
-		engine.startGame({
+		Promise.resolve(window.__godotPwaReady).then(() => engine.startGame({
 			'onProgress': function (current, total) {
 				if (current > 0 && total > 0) {
 					statusProgress.value = current;
@@ -210,7 +210,7 @@ const engine = new Engine(GODOT_CONFIG);
 					statusProgress.removeAttribute('max');
 				}
 			},
-		}).then(() => {
+		})).then(() => {
 			setStatusMode('hidden');
 		}, displayFailureNotice);
 	}
