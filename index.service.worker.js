@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1788188165|2638628';
+const CACHE_VERSION = '1788190460|3521602';
 /** @type {string} */
 const CACHE_PREFIX = 'ecosystem-td-play-sw-cache-';
 const LEGACY_CACHE_PREFIXES = [
