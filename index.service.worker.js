@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1788147936|2784518';
+const CACHE_VERSION = '1788184558|3081554';
 /** @type {string} */
 const CACHE_PREFIX = '人工太陽炉 外郭路-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
@@ -19,20 +19,32 @@ const CACHED_FILES = ["index.html","index.js","index.offline.html","index.icon.p
 /** @type {string[]} */
 const CACHEABLE_FILES = ["index.wasm","index.pck"];
 const FULL_CACHE = CACHED_FILES.concat(CACHEABLE_FILES);
+// PWA_ATOMIC_UPDATE_PATCH_V1: stage the complete runtime before replacing a running build.
 
 self.addEventListener('install', (event) => {
-	event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(CACHED_FILES)));
+	event.waitUntil(
+		caches.open(CACHE_NAME)
+			.then((cache) => cache.addAll(FULL_CACHE))
+			.then(() => self.skipWaiting())
+	);
 });
 
 self.addEventListener('activate', (event) => {
-	event.waitUntil(caches.keys().then(
-		function (keys) {
-			// Remove old caches.
-			return Promise.all(keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map((key) => caches.delete(key)));
+	event.waitUntil(caches.keys().then((keys) => {
+		const oldCaches = keys
+			.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+			.sort();
+		const preload = ('navigationPreload' in self.registration)
+			? self.registration.navigationPreload.enable().catch(() => {})
+			: Promise.resolve();
+		if (oldCaches.length === 0) {
+			return preload;
 		}
-	).then(function () {
-		// Enable navigation preload if available.
-		return ('navigationPreload' in self.registration) ? self.registration.navigationPreload.enable() : Promise.resolve();
+		return preload
+			.then(() => self.clients.claim())
+			.then(() => self.clients.matchAll({ type: 'window' }))
+			.then((all) => Promise.all(all.map((client) => client.navigate(client.url))))
+			.then(() => Promise.all(oldCaches.map((key) => caches.delete(key))));
 	}));
 });
 
@@ -159,7 +171,7 @@ self.addEventListener('message', (event) => {
 		} else if (msg === 'clear') {
 			caches.delete(CACHE_NAME);
 		} else if (msg === 'update') {
-			self.skipWaiting().then(() => self.clients.claim()).then(() => self.clients.matchAll()).then((all) => all.forEach((c) => c.navigate(c.url)));
+			self.skipWaiting();
 		}
 	});
 });

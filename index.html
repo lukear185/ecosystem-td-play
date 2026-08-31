@@ -93,7 +93,7 @@ body {
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 <link rel="manifest" href="index.manifest.json">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#111826"><style>html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;overscroll-behavior:none;background:#111826;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}body{position:fixed;inset:0}canvas{display:block;touch-action:none;-webkit-user-select:none;user-select:none}</style>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#111826"><style>html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;overscroll-behavior:none;background:#111826;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}body{position:fixed;inset:0}canvas{display:block;touch-action:none;-webkit-user-select:none;user-select:none}</style><script>(()=>{if(!('serviceWorker' in navigator))return;let currentRegistration=null;const requestUpdate=()=>{if(currentRegistration)currentRegistration.update().catch(()=>{})};navigator.serviceWorker.register('index.service.worker.js',{updateViaCache:'none'}).then((registration)=>{currentRegistration=registration;return registration.update()}).catch((error)=>console.error('PWA update check failed',error));document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')requestUpdate()})})();</script>
 	</head>
 	<body>
 		<canvas id="canvas">
