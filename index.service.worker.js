@@ -4,9 +4,13 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1788187129|2832070';
+const CACHE_VERSION = '1788188165|2638628';
 /** @type {string} */
-const CACHE_PREFIX = '人工太陽炉 外郭路-sw-cache-';
+const CACHE_PREFIX = 'ecosystem-td-play-sw-cache-';
+const LEGACY_CACHE_PREFIXES = [
+	'人工太陽炉 外郭路-sw-cache-',
+	'夜を焼く太陽-sw-cache-',
+];
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 /** @type {string} */
 const OFFLINE_URL = 'index.offline.html';
@@ -19,7 +23,7 @@ const CACHED_FILES = ["index.html","index.js","index.offline.html","index.icon.p
 /** @type {string[]} */
 const CACHEABLE_FILES = ["index.wasm","index.pck"];
 const FULL_CACHE = CACHED_FILES.concat(CACHEABLE_FILES);
-// PWA_ATOMIC_UPDATE_PATCH_V1: stage the complete runtime before replacing a running build.
+// PWA_ATOMIC_UPDATE_PATCH_V2: stage the complete runtime before replacing a running build.
 
 self.addEventListener('install', (event) => {
 	event.waitUntil(
@@ -32,7 +36,10 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
 	event.waitUntil(caches.keys().then((keys) => {
 		const oldCaches = keys
-			.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+			.filter((key) => (
+				key.startsWith(CACHE_PREFIX)
+				|| LEGACY_CACHE_PREFIXES.some((prefix) => key.startsWith(prefix))
+			) && key !== CACHE_NAME)
 			.sort();
 		const preload = ('navigationPreload' in self.registration)
 			? self.registration.navigationPreload.enable().catch(() => {})
