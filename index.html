@@ -130,9 +130,37 @@ body::after{bottom:0;border-top:1px solid rgba(242,199,100,.16)}
 			<div id="status-notice"></div>
 		</div>
 
+<script>
+/* PWA_FRAME_PACER_30HZ_V1 */
+(()=>{
+  const nativeRaf=window.requestAnimationFrame.bind(window);
+  const nativeCancel=window.cancelAnimationFrame.bind(window);
+  const timers=new Map();
+  let serial=1;
+  let last=0;
+  const frameMs=1000/30;
+  window.requestAnimationFrame=(callback)=>{
+    const token=serial++;
+    const delay=Math.max(0,frameMs-(performance.now()-last)-1);
+    const timer=setTimeout(()=>{
+      const raf=nativeRaf((time)=>{timers.delete(token);last=time;callback(time);});
+      timers.set(token,{timer:null,raf});
+    },delay);
+    timers.set(token,{timer,raf:null});
+    return token;
+  };
+  window.cancelAnimationFrame=(token)=>{
+    const item=timers.get(token);
+    if(!item)return;
+    if(item.timer!==null)clearTimeout(item.timer);
+    if(item.raf!==null)nativeCancel(item.raf);
+    timers.delete(token);
+  };
+})();
+</script>
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":9318452,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,"serviceWorker":"index.service.worker.js"};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":9332464,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,"serviceWorker":"index.service.worker.js"};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
